@@ -1,19 +1,15 @@
 version: '3'
 
-networks:
-  net:
-
-volumes:
-  db-data:
-
 services:
   authority:
     build:
       context: ./authority
+    restart: on-failure
     depends_on:
       - db
     networks:
-      - net
+      dns:
+        ipv4_address: 172.19.0.2
     ports:
       - "8081:8081"
 
@@ -23,7 +19,8 @@ services:
     depends_on:
       - authority
     networks:
-      - net
+      dns:
+        ipv4_address: 172.19.0.3
 
   cache:
     build:
@@ -31,7 +28,8 @@ services:
     depends_on:
       - edge
     networks:
-      - net
+      dns:
+        ipv4_address: 172.19.0.4
     ports:
       - "53:53"
       - "53:53/udp"
@@ -46,6 +44,16 @@ services:
       POSTGRES_PASSWORD: powerdns
       POSTGRES_DB: powerdns
     networks:
-      - net
+      dns:
+        ipv4_address: 172.19.0.5
     ports:
       - "5432:5432"
+
+networks:
+  dns:
+    ipam:
+      config:
+        - subnet: 172.19.0.0/24
+
+volumes:
+  db-data:
