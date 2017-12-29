@@ -1,0 +1,51 @@
+version: '3'
+
+networks:
+  net:
+
+volumes:
+  db-data:
+
+services:
+  authority:
+    build:
+      context: ./authority
+    depends_on:
+      - db
+    networks:
+      - net
+    ports:
+      - "8081:8081"
+
+  edge:
+    build:
+      context: ./edge
+    depends_on:
+      - authority
+    networks:
+      - net
+
+  cache:
+    build:
+      context: ./cache
+    depends_on:
+      - edge
+    networks:
+      - net
+    ports:
+      - "53:53"
+      - "53:53/udp"
+
+  db:
+    build:
+      context: ./db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: powerdns
+      POSTGRES_PASSWORD: powerdns
+      POSTGRES_DB: powerdns
+    networks:
+      - net
+    ports:
+      - "5432:5432"
